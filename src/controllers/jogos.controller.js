@@ -21,12 +21,12 @@ export async function inserirJogo(req, res) {
       return res.status(409).send("Jogo já cadastrado!");
     }
 
-    const game = await db.query(
+    await db.query(
       `INSERT INTO games (name, image, "stockTotal", "pricePerDay") VALUES ($1, $2, $3, $4)`,
       [name, image, stockTotal, pricePerDay]
     );
     res.sendStatus(201);
   } catch (err) {
-    res.sendStatus(400);
+    res.status(400).send(err.message);
   }
 }
