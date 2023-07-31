@@ -1,9 +1,14 @@
 import { Router } from "express";
-import { deletarAluguel, inserirAluguel } from "../controllers/alugueis.controller.js";
+import {
+  deletarAluguel,
+  inserirAluguel,
+  listarAlugueis,
+} from "../controllers/alugueis.controller.js";
 
 const alugueisRouter = Router();
 
 alugueisRouter.post("/rentals", inserirAluguel);
-alugueisRouter.delete("/rentals/:id", deletarAluguel)
+alugueisRouter.get("/rentals", listarAlugueis);
+alugueisRouter.delete("/rentals/:id", deletarAluguel);
 
 export default alugueisRouter;

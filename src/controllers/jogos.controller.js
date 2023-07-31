@@ -17,15 +17,15 @@ export async function inserirJogo(req, res) {
       name,
     ]);
 
-    if (gameExists.rows.length === 0) {
-      return res.status(409).send("Jogo já cadastrado!")
+    if (gameExists.rows.length > 0) {
+      return res.status(409).send("Jogo já cadastrado!");
     }
 
     const game = await db.query(
       `INSERT INTO games (name, image, "stockTotal", "pricePerDay") VALUES ($1, $2, $3, $4)`,
       [name, image, stockTotal, pricePerDay]
     );
-    res.status(201).send(game);
+    res.sendStatus(201);
   } catch (err) {
     res.sendStatus(400);
   }

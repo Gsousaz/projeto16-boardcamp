@@ -1,4 +1,5 @@
 import db from "../database/database.connection.js";
+import dayjs from "dayjs";
 
 export async function listarClientes(req, res) {
   try {
@@ -59,7 +60,7 @@ export async function atualizarCliente(req, res) {
       return res.status(409).send("CPF já cadastrado");
     await db.query(
       `UPDATE customers SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5`,
-      [name, phone, cpf, birthday, id]
+      [name, phone, cpf, dayjs(birthday).format("YYYY-MM-DD"), id]
     );
     res.sendStatus(200);
   } catch (err) {

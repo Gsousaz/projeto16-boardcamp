@@ -3,8 +3,48 @@ import db from "../database/database.connection.js";
 
 export async function listarAlugueis(req, res) {
   try {
-  } catch (err) {
-    res.status(500).send(err.message);
+    const query = `
+      SELECT
+        rentals.id,
+        rentals."customerId",
+        rentals."gameId",
+        TO_CHAR(rentals."rentDate", 'YYYY-MM-DD') AS "rentDate",
+        rentals."daysRented",
+        TO_CHAR(rentals."returnDate", 'YYYY-MM-DD') AS "returnDate",
+        rentals."originalPrice",
+        rentals."delayFee",
+        customers.id AS "customerId",
+        customers.name AS "customerName",
+        games.id AS "gameId",
+        games.name AS "gameName"
+      FROM rentals
+      JOIN customers ON customers.id = rentals."customerId"
+      JOIN games ON games.id = rentals."gameId";`;
+
+    const alugueis = await db.query(query);
+
+    const alugueisList = alugueis.rows.map((aluguel) => ({
+      id: aluguel.id,
+      customerId: aluguel.customerId,
+      gameId: aluguel.gameId,
+      rentDate: aluguel.rentDate,
+      daysRented: aluguel.daysRented,
+      returnDate: aluguel.returnDate,
+      originalPrice: aluguel.originalPrice,
+      delayFee: aluguel.delayFee,
+      customer: {
+        id: aluguel.customerId,
+        name: aluguel.customerName,
+      },
+      game: {
+        id: aluguel.gameId,
+        name: aluguel.gameName,
+      },
+    }));
+
+    res.send(alugueisList);
+  } catch (error) {
+    res.status(500).send({ error: "Erro ao listar aluguéis" });
   }
 }
 
@@ -34,7 +74,7 @@ export async function inserirAluguel(req, res) {
         rentDate,
         daysRented,
         null,
-        game.rows[0].pricePerDay,
+        game.rows[0].pricePerDay * daysRented,
         null,
       ]
     );
