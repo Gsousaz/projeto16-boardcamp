@@ -109,7 +109,7 @@ export async function inserirAluguel(req, res) {
       const today = dayjs();
       const rentDate = dayjs(aluguel.rows[0].rentDate);
       const daysDiff = today.diff(rentDate, "day");
-      const delayFee = daysDiff > aluguel.rows[0].daysRented ? (daysDiff - aluguel.rows[0].daysRented) * aluguel.rows[0].originalPrice : 0;
+      const delayFee = daysDiff > aluguel.rows[0].daysRented ? (daysDiff - aluguel.rows[0].daysRented) * (aluguel.rows[0].originalPrice / aluguel.rows[0].daysRented) : 0;
   
       await db.query(
         `UPDATE rentals SET "returnDate" = $1, "delayFee" = $2 WHERE id = $3`,
