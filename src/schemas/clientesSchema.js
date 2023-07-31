@@ -1,7 +1,7 @@
 import joi from "joi";
 
 export const clientesSchema = joi.object({
-  cpf: string().trim().length(11).pattern(/^\d+$/).required(),
+  cpf: joi.string().trim().length(11).pattern(/^\d+$/).required(),
   phone: joi
     .string()
     .trim()
