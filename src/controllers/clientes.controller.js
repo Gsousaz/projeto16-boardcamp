@@ -15,7 +15,11 @@ export async function buscarClienteId(req, res) {
     const cliente = await db.query(`SELECT * FROM customers WHERE id = $1; `, [
       id,
     ]);
-    res.status(200).send(cliente.rows);
+
+    if (cliente.rows.length === 0) {
+      res.sendStatus(404);
+    }
+    res.status(200).send(cliente.rows[0]);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -29,15 +33,17 @@ export async function inserirCliente(req, res) {
       `SELECT * FROM customers WHERE cpf = $1`,
       [cpf]
     );
+
     if (clientAlreadyExists.rows.length > 0)
       return res.status(409).send("CPF já cadastrado");
+
     await db.query(
       `INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1, $2, $3, $4)`,
-      [name, phone, cpf, birthday]
+      [name, phone, cpf, dayjs(birthday).format("YYYY-MM-DD")]
     );
     res.sendStatus(201);
   } catch (err) {
-    res.status(500).send(err);
+    res.status(400).send(err);
   }
 }
 

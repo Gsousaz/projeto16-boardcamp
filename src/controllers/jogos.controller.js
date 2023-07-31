@@ -12,12 +12,21 @@ export async function listarJogos(req, res) {
 export async function inserirJogo(req, res) {
   try {
     const { name, image, stockTotal, pricePerDay } = req.body;
+
+    const gameExists = await db.query("SELECT * FROM games WHERE name = $1", [
+      name,
+    ]);
+
+    if (gameExists.rows.length === 0) {
+      return res.status(409).send("Jogo já cadastrado!")
+    }
+
     const game = await db.query(
       `INSERT INTO games (name, image, "stockTotal", "pricePerDay") VALUES ($1, $2, $3, $4)`,
       [name, image, stockTotal, pricePerDay]
     );
-    res.status(200).send(game);
+    res.status(201).send(game);
   } catch (err) {
-    console.log("Ocorreu um erro ao acessar o servidor", err);
+    res.sendStatus(400);
   }
 }
