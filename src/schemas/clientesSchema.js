@@ -1,8 +1,13 @@
 import joi from "joi";
 
 export const clientesSchema = joi.object({
-  cpf: joi.number().trim().required().length(11),
-  phone: joi.string().trim().min(10).max(11).required(),
+  cpf: string().trim().length(11).pattern(/^\d+$/).required(),
+  phone: joi
+    .string()
+    .trim()
+    .pattern(/^\d{10,11}$/)
+    .required(),
+
   name: joi.string().required(),
-  birthday: joi.date().iso().required()
+  birthday: joi.date().iso().required(),
 });
