@@ -57,13 +57,16 @@ export async function inserirAluguel(req, res) {
       customerId,
     ]);
     if (customer.rows.length === 0) {
-      res.status(404).send("Cliente não encontrado");
+      return res.status(404).send("Cliente não encontrado");
     }
 
     const game = await db.query(`SELECT * FROM games WHERE id = $1`, [gameId]);
     if (game.rows.length === 0) {
-      res.status(404).send("Jogo não encontrado");
-      return;
+      return res.status(404).send("Jogo não encontrado");
+    }
+
+    if (game.rows[0].stockTotal === 0){
+      return res.status(400).send("Este título não está disponível, todas as unidades foram alugadas!");
     }
 
     await db.query(
@@ -78,11 +81,54 @@ export async function inserirAluguel(req, res) {
         null,
       ]
     );
+
+    await db.query(`UPDATE games SET "stockTotal" = $2 WHERE id = $1`, [gameId, (game.rows[0].stockTotal - 1)])
     res.sendStatus(201);
   } catch (err) {
     res.status(500).send(err.message);
   }
 }
+
+  export async function finalizarAluguel(req, res) {
+    try {
+      const id = req.params.id;
+  
+      const aluguel = await db.query(
+        `SELECT id, "customerId", "gameId", "rentDate", "daysRented", "returnDate", "originalPrice", "delayFee" FROM rentals WHERE id = $1`,
+        [id]
+      );
+  
+      if (aluguel.rows.length === 0) {
+        return res.status(404).send("Aluguel não encontrado");
+      }
+  
+      if (aluguel.rows[0].returnDate !== null) {
+        return res.status(400).send("Aluguel já finalizado!");
+      }
+  
+      const today = dayjs();
+      const rentDate = dayjs(aluguel.rows[0].rentDate);
+      const daysDiff = today.diff(rentDate, "day");
+      const delayFee = daysDiff > aluguel.rows[0].daysRented ? (daysDiff - aluguel.rows[0].daysRented) * aluguel.rows[0].originalPrice : 0;
+  
+      await db.query(
+        `UPDATE rentals SET "returnDate" = $1, "delayFee" = $2 WHERE id = $3`,
+        [today.format("YYYY-MM-DD"), delayFee, id]
+      );
+  
+      // Atualiza o estoque total do jogo
+      const gameId = aluguel.rows[0].gameId;
+      await db.query(
+        `UPDATE games SET "stockTotal" = "stockTotal" + 1 WHERE id = $1`,
+        [gameId]
+      );
+  
+      res.sendStatus(200);
+    } catch (err) {
+      return res.status(500).send(err.message);
+    }
+  }
+  
 
 export async function deletarAluguel(req, res) {
   try {

@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 
 export async function listarClientes(req, res) {
   try {
-    const clientes = await db.query(`SELECT * FROM customers`);
+    const clientes = await db.query(`SELECT id, name, phone, cpf, TO_CHAR (birthday, 'YYYY-MM-DD') as birthday FROM customers`);
     res.status(200).send(clientes.rows);
   } catch (err) {
     res.status(500).send(err);
@@ -13,9 +13,10 @@ export async function listarClientes(req, res) {
 export async function buscarClienteId(req, res) {
   try {
     const id = req.params.id;
-    const cliente = await db.query(`SELECT * FROM customers WHERE id = $1; `, [
-      id,
-    ]);
+    const cliente = await db.query(
+      `SELECT id, name, phone, cpf, TO_CHAR (birthday, 'YYYY-MM-DD') as birthday  FROM customers WHERE id = $1; `,
+      [id]
+    );
 
     if (cliente.rows.length === 0) {
       res.sendStatus(404);
